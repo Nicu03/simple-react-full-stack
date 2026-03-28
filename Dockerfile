@@ -9,7 +9,8 @@ RUN npm run build
 
 FROM node:18-alpine AS production
 
-RUN addgroup -g 1001 -S nodejs && \
+RUN apk update && apk upgrade --no-cache && \
+    addgroup -g 1001 -S nodejs && \
     adduser -S -G nodejs -u 1001 reactuser
 WORKDIR /app
 COPY --from=build --chown=reactuser:nodejs /app/dist ./dist
