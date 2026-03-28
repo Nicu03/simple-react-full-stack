@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
@@ -91,14 +93,25 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Push Docker image (main)
-        if: github.event_name == 'push'
+      - name: Push Docker image (main branch)
+        if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
           tags: |
             ${{ env.DOCKER_IMAGE }}:${{ steps.sha.outputs.short_sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Push Docker image (tag/release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:${{ github.ref_name }}
             ${{ env.DOCKER_IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
